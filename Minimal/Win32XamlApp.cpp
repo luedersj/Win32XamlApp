@@ -52,6 +52,12 @@ struct AppWindow
 </Page>
 )";
 
+    winrt::fire_and_forget TestDispatch(winrt::Windows::UI::Xaml::UIElement content)
+    {
+        co_await winrt::resume_foreground(content.Dispatcher());
+        std::cerr << L"dispatch!" << std::endl;
+    }
+
     LRESULT OnCreate()
     {
         m_xamlSource = winrt::Windows::UI::Xaml::Hosting::DesktopWindowXamlSource();
@@ -78,6 +84,12 @@ struct AppWindow
     {
         const auto dx = LOWORD(lparam), dy = HIWORD(lparam);
         SetWindowPos(m_xamlSourceWindow, nullptr, 0, 0, dx, dy, SWP_SHOWWINDOW);
+
+        for (auto i = 0; i < 100; i++)
+        {
+            TestDispatch(m_xamlSource.Content());
+        }
+
         return 0;
     }
 
@@ -88,6 +100,7 @@ struct AppWindow
         // Work around http://task.ms/33900412, to be fixed
         m_xamlSource.Close();
         PostQuitMessage(0);
+
         return 0;
     }
 
